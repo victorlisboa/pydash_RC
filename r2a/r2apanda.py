@@ -1,28 +1,30 @@
 from r2a.ir2a import IR2A
 from player.parser import *
-from time import perf_counter
+from time import perf_counter, sleep
 
 
 class R2APANDA(IR2A):
 
     def __init__(self, id):
         IR2A.__init__(self, id)
-        self.p_add_bitrate = 0          # w
-        self.probe_convergence = 0      # k
+        self.p_add_bitrate = 0.3        # w
+        self.probe_convergence = 0.14   # k
+        self.buffer_convergence = 0     # beta
         self.request_time = 0
         self.last_throughput = 0        # ~x[n-1]
         self.last_est_throughput = 0    # ^x[n-1]
         self.qi = []
+        self.time_to_next_request = 0
 
     def handle_xml_request(self, msg):
-        """ Sends the xml request down to the transport layer. """
+        """Sends the XML request to the ConnectionHandler"""
 
         self.request_time = perf_counter()
         self.send_down(msg)
 
 
     def handle_xml_response(self, msg):
-        """ Receives the XML, calculates the throughtput """
+        """Sends the XML response to the Player"""
         self.last_est_throughput = msg.get_bit_length() / (perf_counter() - self.request_time)
         self.last_throughput = self.last_est_throughput
         parsed_mpd = parse_mpd(msg.get_payload())
@@ -31,6 +33,10 @@ class R2APANDA(IR2A):
 
 
     def handle_segment_size_request(self, msg):
+        #tempo_passado = perf_counter() - self.request_time
+        #if tempo_passado < self.time_to_next_request:
+        #    sleep(self.time_to_next_request - tempo_passado)
+
         request_time_atual = perf_counter()
         inter_request_time = request_time_atual- self.request_time
         self.request_time = request_time_atual
@@ -47,8 +53,10 @@ class R2APANDA(IR2A):
         msg.add_quality_id(selected_qi)
         self.last_est_throughput = est_throughput
 
-        print(msg.get_segment_size())
-
+        #last_buffer_size = self.whiteboard.get_playback_buffer_size()[-1][1]
+        #self.time_to_next_request = (selected_qi * msg.get_segment_size() / est_throughput 
+        #        + self.buffer_convergence * (last_buffer_size - 10))
+        
         self.send_down(msg)
 
     def handle_segment_size_response(self, msg):
