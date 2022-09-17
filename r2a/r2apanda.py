@@ -9,7 +9,7 @@ class R2APANDA(IR2A):
         IR2A.__init__(self, id)
         self.prob_add_bitrate = 0.3        # w
         self.probe_convergence = 0.14   # k
-        self.buffer_convergence = 0     # beta
+        self.buffer_convergence_rate = 0     # beta
         self.last_request_time = 0           # time of the last request
         self.last_throughput = 0        # ~x[n-1] - last TCP throughput measured
         self.last_est_throughput = 0    # ^x[n-1] - last target throughput
@@ -66,14 +66,15 @@ class R2APANDA(IR2A):
         self.last_est_throughput = est_throughput
 
         # scheduling the next request time
-        # last_buffer_size = self.whiteboard.get_playback_buffer_size()[-1][1]
-        # self.time_to_next_request = (selected_qi * msg.get_segment_size() / est_throughput 
-        #        + self.buffer_convergence * (last_buffer_size - 10))
+        last_buffer_size = self.whiteboard.get_amount_video_to_play()
+        min_buffer = 10
+        base_time = selected_qi * msg.get_segment_size() / est_throughput
+        self.time_to_next_request = base_time + self.buffer_convergence_rate * (last_buffer_size - min_buffer)
         
         self.send_down(msg)
 
     def handle_segment_size_response(self, msg):
-        self.last_throughput = msg.get_bit_length() / (perf_counter() - self.request_time)
+        self.last_throughput = msg.get_bit_length() / (perf_counter() - self.last_request_time)
         self.send_up(msg)
 
     def initialize(self):
