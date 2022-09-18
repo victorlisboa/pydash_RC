@@ -60,13 +60,12 @@ class R2APANDA(IR2A):
         throughput_variation_rate = self.probe_convergence_rate * (self.prob_add_bitrate - discount)
         est_throughput = throughput_variation_rate * inter_request_time + self.last_est_throughput
         
-        
         # STEP 2
         # smoothing out the estimated throughput
         est_throughput = (est_throughput + self.last_est_throughput) / 2 
         self.est_throughputs.append(est_throughput)   # salva throughput estimado
         self.last_est_throughput = est_throughput
-        
+
         # STEP 3
         # quantizes the bitrate to a discrete value
         selected_qi = self.qi[0]
