@@ -1,5 +1,3 @@
-from dis import disco
-from distutils.log import debug
 from r2a.ir2a import IR2A
 from player.parser import *
 from time import perf_counter, sleep
