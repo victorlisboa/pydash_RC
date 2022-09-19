@@ -91,17 +91,7 @@ class R2APANDA(IR2A):
         self.send_up(msg)
 
     def initialize(self):
-        with open('debug.txt', 'w') as f:
-            f.write('')
+        pass
 
     def finalization(self):
-        self.wf(self.est_throughputs)
-        self.wf(self.throughputs)
-
-    def wf(self, x):
-            with open('debug.txt', 'a') as f:
-                f.write(str(x)+'\n---------------\n')
-
-
-    def debug(self, x, s):
-            print('>'*10, '\n'*3, s,'\n', x, '\n'*3, '>'*10)
+        pass
